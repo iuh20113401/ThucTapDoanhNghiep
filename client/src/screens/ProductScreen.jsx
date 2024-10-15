@@ -325,7 +325,7 @@ const ProductScreen = () => {
                 </Button>
 
                 <Image
-                  src={images[currentImageIndex]}
+                  src={`${process.env.REACT_APP_SERVER}${images[currentImageIndex]}`}
                   alt={`Product image ${currentImageIndex + 1}`}
                   w="100%"
                   objectFit="cover"
@@ -355,7 +355,7 @@ const ProductScreen = () => {
                   {product.images.map((img, idx) => (
                     <Image
                       key={idx}
-                      src={img}
+                      src={`${process.env.REACT_APP_SERVER}${img}`}
                       alt={`Thumbnail ${idx + 1}`}
                       boxSize="100px" // Thumbnail size
                       objectFit="cover"
