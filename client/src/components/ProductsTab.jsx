@@ -80,7 +80,7 @@ const ProductsTab = () => {
                 <CompactProductCard key={product._id} product={product} />
               ))
             ) : (
-              <Text>No products available. Please add new products.</Text>
+              <Text>Chưa có sản phẩm. Vui lòng thêm sản phẩm mới</Text>
             )}
           </SimpleGrid>
         </Box>
@@ -107,7 +107,10 @@ const CompactProductCard = ({ product }) => {
     >
       <Flex>
         <Image
-          src={coverImage || "https://via.placeholder.com/50"}
+          src={
+            `${process.env.REACT_APP_SERVER}${coverImage}` ||
+            "https://via.placeholder.com/50"
+          }
           alt={name}
           boxSize="50px"
           objectFit="cover"
@@ -125,9 +128,9 @@ const CompactProductCard = ({ product }) => {
 
           <Text>
             {stock > 0 ? (
-              <Badge colorScheme="green">In Stock: {stock}</Badge>
+              <Badge colorScheme="green">Tồn kho: {stock}</Badge>
             ) : (
-              <Badge colorScheme="red">Out of Stock</Badge>
+              <Badge colorScheme="red">Hết hàng</Badge>
             )}
           </Text>
 
