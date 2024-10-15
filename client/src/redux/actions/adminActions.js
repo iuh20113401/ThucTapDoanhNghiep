@@ -15,6 +15,7 @@ import {
   userDelete,
   orderDelete,
 } from "../slices/admin";
+const URL = `${process.env.REACT_APP_SERVER}/api`;
 
 export const getAllUsers = () => async (dispatch, getState) => {
   dispatch(setLoading());
@@ -30,7 +31,7 @@ export const getAllUsers = () => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.get("http://localhost:5000/api/users", config);
+    const { data } = await axios.get(`${URL}/users`, config);
     dispatch(getUsers(data));
   } catch (error) {
     dispatch(
@@ -59,10 +60,7 @@ export const deleteUser = (id) => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.delete(
-      `http://localhost:5000/api/users/${id}`,
-      config
-    );
+    const { data } = await axios.delete(`${URL}/users/${id}`, config);
     dispatch(userDelete(data));
   } catch (error) {
     dispatch(
@@ -91,10 +89,7 @@ export const getAllOrders = () => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.get(
-      "http://localhost:5000/api/orders",
-      config
-    );
+    const { data } = await axios.get(`${URL}/orders`, config);
     dispatch(getOrders(data));
   } catch (error) {
     dispatch(
@@ -123,10 +118,7 @@ export const deleteOrder = (id) => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.delete(
-      `http://localhost:5000/api/orders/${id}`,
-      config
-    );
+    const { data } = await axios.delete(`${URL}/orders/${id}`, config);
     dispatch(orderDelete(data));
   } catch (error) {
     dispatch(
@@ -155,7 +147,7 @@ export const setDelivered = (id) => async (dispatch, getState) => {
   };
 
   try {
-    await axios.put(`http://localhost:5000/api/orders/${id}`, {}, config);
+    await axios.put(`${URL}/orders/${id}`, {}, config);
     dispatch(setDeliveredFlag());
   } catch (error) {
     dispatch(
@@ -187,11 +179,7 @@ export const updateProduct = (id, body) => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.patch(
-      `http://localhost:5000/api/products/${id}`,
-      body,
-      config
-    );
+    const { data } = await axios.patch(`${URL}/products/${id}`, body, config);
     dispatch(setProducts(data));
     dispatch(setProductUpdateFlag());
   } catch (error) {
@@ -221,10 +209,7 @@ export const deleteProduct = (id) => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.delete(
-      `http://localhost:5000/api/products/${id}`,
-      config
-    );
+    const { data } = await axios.delete(`${URL}/products/${id}`, config);
     dispatch(setProducts(data));
     dispatch(setProductUpdateFlag());
     dispatch(resetError());
@@ -252,11 +237,7 @@ export const uploadProduct = (newProduct) => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.post(
-      `http://localhost:5000/api/products`,
-      newProduct,
-      config
-    );
+    const { data } = await axios.post(`${URL}/products`, newProduct, config);
     dispatch(setProducts(data));
     dispatch(setProductInsertFlag());
   } catch (error) {
@@ -288,7 +269,7 @@ export const removeReview =
     };
     try {
       const { data } = await axios.put(
-        `http://localhost:5000/api/products/${productId}/${reviewId}`,
+        `${URL}/products/${productId}/${reviewId}`,
         {},
         config
       );

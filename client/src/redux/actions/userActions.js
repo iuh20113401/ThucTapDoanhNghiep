@@ -12,12 +12,12 @@ import {
 } from "../slices/user";
 
 import { clearCart } from "../slices/cart";
-const URL = "http://localhost:5000/api/users";
+const URL = `${process.env.REACT_APP_SERVER}/api/users`;
 export const login = (email, password) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const config = { headers: { "Content-Type": "application/json" } };
-
+    console.log(URL);
     const { data } = await axios.post(
       `${URL}/login`,
       { email, password },
@@ -52,7 +52,7 @@ export const register = (name, email, password) => async (dispatch) => {
     const config = { headers: { "Content-Type": "application/json" } };
 
     const { data } = await axios.post(
-      "http://localhost:5000/api/users/register",
+      `${URL}/register`,
       { name, email, password },
       config
     );

@@ -7,13 +7,12 @@ import {
   cartItemRemoval,
   clearCart,
 } from "../slices/cart";
+const URL = `${process.env.REACT_APP_SERVER}/api/products`;
 
 export const addCartItem = (id, qty, color, size) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const { data } = await axios.get(
-      `http://localhost:5000/api/products/${id}`
-    );
+    const { data } = await axios.get(`${URL}/${id}`);
     const itemToAdd = {
       id: data._id,
       name: data.name,

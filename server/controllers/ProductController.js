@@ -218,15 +218,21 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found.");
   }
 });
-
 export const getOverview = async (req, res) => {
   try {
     const overviewData = await Product.aggregate([
-      // Unwind arrays to get distinct values
-      { $unwind: "$colors" },
-      { $unwind: "$sizes" },
+      {
+        $project: {
+          colors: 1,
+          sizes: 1,
+          brand: 1,
+          rating: 1,
+          effectivePrice: { $min: ["$price", "$salePrice"] },
+        },
+      },
+      { $unwind: { path: "$colors", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$sizes", preserveNullAndEmptyArrays: true } },
 
-      // Group by distinct values
       {
         $group: {
           _id: null,
@@ -234,8 +240,26 @@ export const getOverview = async (req, res) => {
           distinctSizes: { $addToSet: "$sizes" },
           distinctBrands: { $addToSet: "$brand" },
           distinctRatings: { $addToSet: "$rating" },
-          minPrice: { $min: "$price" },
-          maxPrice: { $max: "$price" },
+          minPrice: { $min: "$effectivePrice" }, // Use the effective price for min
+          maxPrice: { $max: "$effectivePrice" }, // Use the effective price for max
+        },
+      },
+      {
+        $set: {
+          distinctColors: {
+            $filter: {
+              input: "$distinctColors",
+              as: "color",
+              cond: { $ne: ["$$color", null] },
+            },
+          },
+          distinctSizes: {
+            $filter: {
+              input: "$distinctSizes",
+              as: "size",
+              cond: { $ne: ["$$size", null] },
+            },
+          },
         },
       },
       {
@@ -256,6 +280,7 @@ export const getOverview = async (req, res) => {
     res.status(500).json({ message: "Error retrieving overview data", error });
   }
 };
+
 const getDistinctCategories = async (req, res) => {
   try {
     const categories = await Product.distinct("category");

@@ -7,7 +7,7 @@ import {
 } from "../slices/shipping";
 import { setShippingFeeDeleted } from "../slices/shipping";
 import { setShipping } from "./cartActions";
-
+const URL = process.env.REACT_APP_SERVER;
 export const getAllShippingFees = () => async (dispatch, getState) => {
   setLoading();
   const {
@@ -22,10 +22,7 @@ export const getAllShippingFees = () => async (dispatch, getState) => {
   };
 
   try {
-    const { data } = await axios.get(
-      "http://localhost:5000/api/shipping",
-      config
-    );
+    const { data } = await axios.get(`${URL}/api/shipping`, config);
     dispatch(setShippingLocations(data));
   } catch (error) {
     setError(
@@ -54,7 +51,7 @@ export const setShippingFee =
 
     try {
       await axios.post(
-        "http://localhost:5000/api/shipping",
+        `${URL}/api/shipping`,
         { city, district, shippingFee },
         config
       );
@@ -87,7 +84,7 @@ export const getShippingFee =
 
     try {
       let { data } = await axios.get(
-        `http://localhost:5000/api/shipping/${city}/${district}`,
+        `${URL}/api/shipping/${city}/${district}`,
         config
       );
       data = data.data;
@@ -121,7 +118,7 @@ export const updateShippingFee =
 
     try {
       await axios.patch(
-        `http://localhost:5000/api/shipping/${city}/${district}`,
+        `${URL}/api/shipping/${city}/${district}`,
         { newShippingFee },
         config
       );
@@ -154,10 +151,7 @@ export const deleteShippingFee =
     };
 
     try {
-      await axios.delete(
-        `http://localhost:5000/api/shipping/${city}/${district}`,
-        config
-      );
+      await axios.delete(`${URL}/api/shipping/${city}/${district}`, config);
       dispatch(setShippingFeeDeleted(city, district));
     } catch (error) {
       dispatch(

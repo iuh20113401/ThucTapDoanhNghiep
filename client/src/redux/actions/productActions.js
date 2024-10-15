@@ -12,10 +12,12 @@ import {
   setProductsHome,
 } from "../slices/product";
 import axios from "axios";
+const URL = `${process.env.REACT_APP_SERVER}/api/products`;
+
 export const getProductsHome = () => async (dispatch) => {
   dispatch(setLoading());
   try {
-    const { data } = await axios.get(`http://localhost:5000/api/products/home`);
+    const { data } = await axios.get(`${URL}/home`);
     const { data: newData } = data;
     dispatch(setProductsHome(newData));
   } catch (error) {
@@ -34,7 +36,7 @@ export const getProducts = (page, option) => async (dispatch) => {
   dispatch(setLoading());
   try {
     const { data } = await axios.get(
-      `http://localhost:5000/api/products/${page}/${12}?${option ? option : ""}`
+      `${URL}/${page}/${12}?${option ? option : ""}`
     );
     const { products, pagination } = data;
     dispatch(setProducts(products));
@@ -54,9 +56,7 @@ export const getProducts = (page, option) => async (dispatch) => {
 export const getProductsOverview = () => async (dispatch) => {
   dispatch(setLoading());
   try {
-    const { data } = await axios.get(
-      `http://localhost:5000/api/products/overview`
-    );
+    const { data } = await axios.get(`${URL}/overview`);
     const { data: newData } = data;
     console.log(data);
     dispatch(setProductsOveview(newData));
@@ -112,9 +112,7 @@ export const toggleFavorites = (toggle) => async (dispatch, getState) => {
 export const getProduct = (id) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const { data } = await axios.get(
-      `http://localhost:5000/api/products/${id}`
-    );
+    const { data } = await axios.get(`${URL}/${id}`);
     dispatch(setProduct(data));
   } catch (error) {
     dispatch(
@@ -143,7 +141,7 @@ export const createProductReview =
       };
 
       await axios.post(
-        `http://localhost:5000/api/products/reviews/${productId}`,
+        `${URL}/reviews/${productId}`,
         { comment, userId, rating, title },
         config
       );

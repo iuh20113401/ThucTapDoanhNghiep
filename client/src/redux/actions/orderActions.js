@@ -1,6 +1,8 @@
 import axios from "axios";
 import { setError, setShippingAddress, clearOrder } from "../slices/order";
 
+const URL = `${process.env.REACT_APP_SERVER}`;
+
 export const setAddress = (data) => (dispatch) => {
   dispatch(setShippingAddress(data));
 };
@@ -22,11 +24,7 @@ export const setPayment = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.post(
-      "http://localhost:5000/api/checkout",
-      newOrder,
-      config
-    );
+    const { data } = await axios.post(`${URL}/api/checkout`, newOrder, config);
     window.location.assign(data.payUrl);
   } catch (error) {
     setError(

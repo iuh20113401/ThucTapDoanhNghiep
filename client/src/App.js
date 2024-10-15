@@ -20,7 +20,7 @@ import CancelScreen from "./screens/CancelScreen";
 import SuccessScreen from "./screens/SuccessScreen";
 import AdminConsoleScreen from "./screens/AdminConsoleScreen";
 import AddNewProductScreen from "./screens/AddNewProductScreen";
-
+const URL = `${process.env.REACT_APP_SERVER}/api`;
 function App() {
   const theme = extendTheme({
     styles: {
@@ -35,9 +35,7 @@ function App() {
   const [googleClient, setGoogleClient] = useState(null);
   useEffect(() => {
     const googleKey = async () => {
-      const { data: googleId } = await axios.get(
-        "http://localhost:5000/api/config/google"
-      );
+      const { data: googleId } = await axios.get(`${URL}/config/google`);
       setGoogleClient(googleId);
     };
     googleKey();
