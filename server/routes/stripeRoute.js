@@ -40,8 +40,8 @@ const stripePayment = async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     line_items: lineItems,
     mode: "payment",
-    success_url: "http://localhost:3000/success",
-    cancel_url: "http://localhost:3000/cancel",
+    success_url: `${process.env.CLIENT_URI}/success`,
+    cancel_url: `${process.env.CLIENT_URI}/cancel`,
   });
 
   const order = new Order({
@@ -95,7 +95,7 @@ stripeRoute.route("/").post(protectRoute, async (req, res) => {
     var secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
     var orderInfo = "pay with MoMo";
     var partnerCode = "MOMO";
-    var redirectUrl = "http://localhost:3000/success";
+    var redirectUrl = `${process.env.CLIENT_URI}/success`;
     var ipnUrl = "http://localhost:5000/api/checkout-notify";
     var requestType = "payWithMethod";
     var amount = +data.subtotal + +Math.ceil(data.shipping);
