@@ -2,7 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://khoaluantotnghiep-kcc7.onrender.com/",
+  "proxy": "https://thuctapdoanhnghiep.onrender.com/",
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.1",
