@@ -22,7 +22,7 @@ import { Link as ReactLink } from "react-router-dom";
 import { addCartItem } from "../redux/actions/cartActions";
 import { TbShoppingCartPlus } from "react-icons/tb";
 
-const SERVER_URI = "http://localhost:5000";
+const SERVER_URI = `${process.env.REACT_APP_SERVER}`;
 const formatPrice = (price) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
