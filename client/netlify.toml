@@ -1,7 +1,7 @@
 [build]
-  base = ""  # Adjust this if your project directory is different
+  base = "client"  # Adjust this if your project directory is different
   command = "CI=false npm run build"
-  publish = "client/build"
+  publish = "build"
 
 [[redirects]]
   from = "/*"
