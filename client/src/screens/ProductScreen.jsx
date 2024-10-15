@@ -1,4 +1,9 @@
-import { MinusIcon, SmallAddIcon } from "@chakra-ui/icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MinusIcon,
+  SmallAddIcon,
+} from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -29,6 +34,7 @@ import { useEffect, useState } from "react";
 import { addCartItem } from "../redux/actions/cartActions";
 import Star from "../components/Star";
 import { createProductReview } from "../redux/actions/productActions";
+import formatPrice from "../utils/FormatVietNamCurrency";
 
 const ProductScreen = () => {
   const [amount, setAmount] = useState(1);
@@ -54,6 +60,21 @@ const ProductScreen = () => {
   const [reviewBoxOpen, setReviewBoxOpen] = useState(false);
   const { userInfo } = useSelector((state) => state.user);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(product?.images[0]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = product?.images || [];
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
   useEffect(() => {
     dispatch(getProduct(id));
     setReviewBoxOpen(false);
@@ -117,12 +138,15 @@ const ProductScreen = () => {
       ) : (
         product && (
           <Box
-            maxW={{ base: "3xl", lg: "5xl" }}
+            maxW={{ base: "3xl", lg: "7xl" }}
             mx="auto"
             px={{ base: "4", md: "8", lg: "12" }}
             py={{ base: "6", md: "8", lg: "12" }}
           >
-            <Stack direction={{ base: "column", lg: "row" }} align="flex-start">
+            <Stack
+              direction={{ base: "column-reverse", lg: "row" }}
+              align="flex-start"
+            >
               <Stack
                 pr={{ base: "0", md: "row" }}
                 flex="1.5"
@@ -132,11 +156,11 @@ const ProductScreen = () => {
                   <Badge
                     p="2"
                     rounded="md"
-                    w="50px"
+                    w="max-content"
                     fontSize="0.8em"
                     colorScheme="green"
                   >
-                    New
+                    Sản phẩm mới
                   </Badge>
                 )}
                 {product.stock === 0 && (
@@ -154,7 +178,36 @@ const ProductScreen = () => {
                 </Heading>
                 <Stack spacing="5">
                   <Box>
-                    <Text fontSize="xl">${product.price}</Text>
+                    <Flex
+                      justify={{ base: "center", md: "space-between" }}
+                      mt="2"
+                      flexDirection={{ base: "column", md: "row" }}
+                    >
+                      <Text
+                        fontSize="xl"
+                        fontWeight="semibold"
+                        color="cyan.600"
+                      >
+                        {product.salePrice ? (
+                          <Flex align="center">
+                            <Text
+                              as="span"
+                              mr="2"
+                              color="gray.500"
+                              fontSize="md"
+                              textDecoration="line-through"
+                            >
+                              {formatPrice(product.price)}
+                            </Text>
+                            <Text as="span" color="cyan.600">
+                              {formatPrice(product.salePrice)}
+                            </Text>
+                          </Flex>
+                        ) : (
+                          <Text>{formatPrice(product.price)}</Text>
+                        )}
+                      </Text>
+                    </Flex>
                     <Flex>
                       <HStack spacing="2px">
                         <Star color="cyan.500" />
@@ -228,25 +281,25 @@ const ProductScreen = () => {
                     colorScheme="cyan"
                     onClick={() => addItem()}
                   >
-                    Add to cart
+                    Thêm vào giỏ hàng
                   </Button>
                   <Stack width="270px">
                     <Flex alignItems="center">
                       <BiPackage size="20px" />
                       <Text fontWeight="medium" fontSize="sm" ml="2">
-                        Shipped in 2 - 3 days
+                        Giao hàng trong 2 - 3 ngày
                       </Text>
                     </Flex>
                     <Flex alignItems="center">
                       <BiCheckShield size="20px" />
                       <Text fontWeight="medium" fontSize="sm" ml="2">
-                        2 year extended warranty
+                        Bảo hành 6 - 12 tháng
                       </Text>
                     </Flex>
                     <Flex alignItems="center">
                       <BiSupport size="20px" />
                       <Text fontWeight="medium" fontSize="sm" ml="2">
-                        We're here for you 24/7
+                        Phục vụ 24/7{" "}
                       </Text>
                     </Flex>
                   </Stack>
@@ -255,21 +308,69 @@ const ProductScreen = () => {
               <Flex
                 direction="column"
                 align="center"
-                flex="1"
-                _dark={{ bg: "gray.900" }}
+                position="relative"
+                w={{ base: "full", lg: "40%" }}
               >
+                {/* Left Button */}
+                <Button
+                  position="absolute"
+                  left="5px"
+                  top="35%"
+                  transform="translateY(-50%)"
+                  zIndex="1"
+                  onClick={handlePrevImage}
+                  _focus={{ boxShadow: "none" }}
+                >
+                  <ChevronLeftIcon boxSize={6} />
+                </Button>
+
                 <Image
-                  mb="30px"
-                  src={product.images[0]}
-                  alt={product.name}
-                  fallbackSrc="https://via.placeholder.com/250"
+                  src={images[currentImageIndex]}
+                  alt={`Product image ${currentImageIndex + 1}`}
+                  w="100%"
+                  objectFit="cover"
+                  maxH="500px"
+                  mb="4"
                 />
-                <Image
-                  mb="30px"
-                  src={product.images[1]}
-                  alt={product.name}
-                  fallbackSrc="https://via.placeholder.com/250"
-                />
+
+                {/* Right Button */}
+                <Button
+                  position="absolute"
+                  right="5px"
+                  top="35%"
+                  transform="translateY(-50%)"
+                  zIndex="1"
+                  onClick={handleNextImage}
+                  _focus={{ boxShadow: "none" }}
+                >
+                  <ChevronRightIcon boxSize={6} />
+                </Button>
+                <Flex
+                  overflowX="auto"
+                  maxW="100%"
+                  py="10px"
+                  px="5px"
+                  gap="10px"
+                >
+                  {product.images.map((img, idx) => (
+                    <Image
+                      key={idx}
+                      src={img}
+                      alt={`Thumbnail ${idx + 1}`}
+                      boxSize="100px" // Thumbnail size
+                      objectFit="cover"
+                      cursor="pointer"
+                      border={
+                        selectedImage === img
+                          ? "2px solid cyan"
+                          : "2px solid transparent"
+                      }
+                      onClick={() => setSelectedImage(img)}
+                      _hover={{ border: "2px solid cyan" }}
+                      fallbackSrc="https://via.placeholder.com/100"
+                    />
+                  ))}
+                </Flex>
               </Flex>
             </Stack>
 
@@ -285,11 +386,11 @@ const ProductScreen = () => {
                   <Button
                     isDisabled={hasUserReviewed()}
                     my="20px"
-                    w="140px"
+                    w="max-content"
                     colorScheme="cyan"
                     onClick={() => setReviewBoxOpen(!reviewBoxOpen)}
                   >
-                    Write a review
+                    Viết nhận xét sản phẩm
                   </Button>
                 </Tooltip>
                 {reviewBoxOpen && (
@@ -332,7 +433,7 @@ const ProductScreen = () => {
                       colorScheme="cyan"
                       onClick={() => onSubmit()}
                     >
-                      Publish review
+                      Đăng nhận xét
                     </Button>
                   </Stack>
                 )}
@@ -340,7 +441,7 @@ const ProductScreen = () => {
             )}
             <Stack>
               <Text fontSize="xl" fontWeight="bold">
-                Reviews
+                Nhận xét
               </Text>
               <SimpleGrid minChildWidth="300px" spacingX="40px" spacingY="20px">
                 {product.reviews.map((review) => (

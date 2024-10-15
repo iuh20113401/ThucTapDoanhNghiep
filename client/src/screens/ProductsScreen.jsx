@@ -25,8 +25,8 @@ const ProductsScreen = () => {
     useSelector((state) => state.product);
 
   useEffect(() => {
-    dispatch(getProducts(1));
-  }, [dispatch]);
+    !favoritesToggled && dispatch(getProducts(1));
+  }, [dispatch, favoritesToggled]);
 
   const paginationButtonClick = (page) => {
     dispatch(getProducts(page));
@@ -42,12 +42,7 @@ const ProductsScreen = () => {
       flexDirection={layoutDirection}
       w="100%"
     >
-      <Box
-        w={{ base: "100%", lg: "20%" }}
-        screens
-        p={{ base: 2, md: 0 }}
-        bg="blue.50"
-      >
+      <Box w={{ base: "100%", lg: "20%" }} screens p={{ base: 2, md: 0 }}>
         <Center>
           <ProductFilter />
         </Center>

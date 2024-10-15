@@ -8,14 +8,33 @@ import {
   setProduct,
   productReviewed,
   resetError,
+  setProductsOveview,
+  setProductsHome,
 } from "../slices/product";
 import axios from "axios";
-
+export const getProductsHome = () => async (dispatch) => {
+  dispatch(setLoading());
+  try {
+    const { data } = await axios.get(`http://localhost:5000/api/products/home`);
+    const { data: newData } = data;
+    dispatch(setProductsHome(newData));
+  } catch (error) {
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
+    );
+  }
+};
 export const getProducts = (page, option) => async (dispatch) => {
   dispatch(setLoading());
   try {
     const { data } = await axios.get(
-      `http://localhost:5000/api/products/${page}/${10}?${option ? option : ""}`
+      `http://localhost:5000/api/products/${page}/${12}?${option ? option : ""}`
     );
     const { products, pagination } = data;
     dispatch(setProducts(products));
@@ -32,7 +51,27 @@ export const getProducts = (page, option) => async (dispatch) => {
     );
   }
 };
-
+export const getProductsOverview = () => async (dispatch) => {
+  dispatch(setLoading());
+  try {
+    const { data } = await axios.get(
+      `http://localhost:5000/api/products/overview`
+    );
+    const { data: newData } = data;
+    console.log(data);
+    dispatch(setProductsOveview(newData));
+  } catch (error) {
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
+    );
+  }
+};
 export const addToFavorites = (id) => async (dispatch, getState) => {
   const {
     product: { favorites },

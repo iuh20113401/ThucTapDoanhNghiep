@@ -8,47 +8,76 @@ import {
   FormLabel,
   HStack,
   Box,
-  Heading,
   Checkbox,
   Image,
   Tag,
   TagLabel,
   TagCloseButton,
+  useToast,
 } from "@chakra-ui/react";
-import { useDispatch } from "react-redux";
-import { uploadProduct } from "../redux/actions/adminActions";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  resetErrorAndRemoval,
+  updateProduct,
+  uploadProduct,
+} from "../redux/actions/adminActions";
+import { useEffect, useRef, useState } from "react";
+import { Formik, Field } from "formik";
+import * as Yup from "yup";
+import { getProduct, resetProductError } from "../redux/actions/productActions";
+import { useParams } from "react-router-dom";
+
 const createSlug = (name) => {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric characters with hyphens
-    .replace(/(^-|-$)+/g, ""); // Remove leading/trailing hyphens
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
 };
+
 const AddNewProduct = () => {
+  const { id } = useParams();
   const dispatch = useDispatch();
-  const { handleSubmit, control, reset, watch } = useForm();
-  const [colors, setColors] = useState([]);
-  const [sizes, setSizes] = useState([]);
+  const { product, productInsert, productUpdate } = useSelector(
+    (state) => state.product
+  );
+  useEffect(() => {
+    if (id) dispatch(getProduct(id));
+  }, [dispatch, id]);
+  const { loading, error } = useSelector((state) => state.admin);
+  const [colors, setColors] = useState(product ? product.colors : []);
+  const [sizes, setSizes] = useState(product ? product.sizes : []);
   const [colorInput, setColorInput] = useState("");
   const [colorNameInput, setColorNameInput] = useState("");
   const [sizeInput, setSizeInput] = useState("");
-  const [coverImage, setCoverImage] = useState(null); // For cover image
-  const [imageFiles, setImageFiles] = useState([]); // For additional images
-  const [previewImages, setPreviewImages] = useState([]);
-  // Inside your component
-  const [slug, setSlug] = useState("");
-
+  const [coverImage, setCoverImage] = useState(
+    product ? product.coverImage : null
+  );
+  const [imageFiles, setImageFiles] = useState([]);
+  const [previewImages, setPreviewImages] = useState(
+    product ? product.images.map((img) => img.url) : []
+  );
+  const [slug, setSlug] = useState(product ? product.slug : "");
+  const [productIsSale, setProductIsSale] = useState(
+    product ? product.productIsSaleOff : false
+  );
+  const [productIsNew, setProductIsNew] = useState(
+    product ? product.productIsNew : false
+  );
   useEffect(() => {
-    // Watch the `name` field for changes and update the slug
-    const subscription = watch((value, { name }) => {
-      if (name === "name") {
-        setSlug(createSlug(value.name));
-      }
-    });
+    if (product) {
+      setColors(product.colors);
+      setSizes(product.sizes);
+      setProductIsNew(product.productIsNew);
+      setProductIsSale(product.productIsSaleOff);
+      setCoverImage(product.coverImage);
+      setImageFiles(product.images);
+      setSlug(product.slug);
+    }
+  }, [product]);
 
-    return () => subscription.unsubscribe();
-  }, [watch]);
+  const formikRef = useRef(null);
+  const toast = useToast();
+
   const addColor = () => {
     if (colorInput && colorNameInput && !colors.includes(colorInput)) {
       setColors([...colors, { color: colorInput, ten: colorNameInput }]);
@@ -56,7 +85,34 @@ const AddNewProduct = () => {
       setColorNameInput("");
     }
   };
+  // Assuming reset() is a custom function to reset all form fields and state variables
+  const reset = () => {
+    setColors([]);
+    setSizes([]);
+    setColorInput("");
+    setColorNameInput("");
+    setSizeInput("");
+    setCoverImage(null);
+    setImageFiles([]);
+    setPreviewImages([]);
+    setSlug("");
+    setProductIsSale(false);
+    setProductIsNew(false);
+  };
 
+  useEffect(() => {
+    if (!loading && !error && (productInsert || productUpdate)) {
+      toast({
+        description: "Thêm sản phẩm thành công",
+        status: "success",
+        isClosable: "true",
+      });
+      formikRef.current.resetForm();
+      reset();
+      dispatch(resetErrorAndRemoval());
+      dispatch(resetProductError());
+    }
+  }, [loading, error, dispatch, toast, productInsert, productUpdate]);
   const removeColor = (index) => {
     setColors(colors.filter((_, i) => i !== index));
   };
@@ -76,81 +132,113 @@ const AddNewProduct = () => {
     const file = e.target.files[0];
     setCoverImage(file);
   };
-
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setImageFiles((prevFiles) => [...prevFiles, ...files]);
     const previews = files.map((file) => URL.createObjectURL(file));
     setPreviewImages((prevPreviews) => [...prevPreviews, ...previews]);
   };
-
-  const onSubmit = (data) => {
+  const onSubmit = (values) => {
     const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("brand", data.brand);
-    formData.append("category", data.category);
-    formData.append("price", data.price);
-    formData.append("stock", data.stock);
-    formData.append("productIsNew", data.productIsNew);
-    formData.append("description", data.description);
-    formData.append("slug", slug);
+    formData.append("name", values.name);
+    formData.append("brand", values.brand);
+    formData.append("category", values.category);
+    formData.append("price", values.price);
+    formData.append("stock", values.stock);
+    formData.append("description", values.description);
+    formData.append("slug", createSlug(values.name));
+    formData.append("productIsNew", productIsNew);
+    formData.append("productIsSale", productIsSale);
 
     colors.forEach((color, index) => {
       formData.append(`colors[${index}][color]`, color.color);
       formData.append(`colors[${index}][ten]`, color.ten);
     });
+
     sizes.forEach((size) => {
       formData.append("sizes[]", size);
     });
+
     if (coverImage) {
+      console.log(coverImage);
       formData.append("coverImage", coverImage);
     }
-
     imageFiles.forEach((file) => {
       formData.append("images", file);
     });
 
-    // Dispatch the form data to the uploadProduct action
-    dispatch(uploadProduct(formData));
+    if (productIsSale && values.salePrice) {
+      formData.append("salePrice", values.salePrice);
+    }
 
-    // reset();
-    // setCoverImage(null);
-    // setImageFiles([]);
-    // setPreviewImages([]);
-    // setColors([]);
-    // setSizes([]);
+    if (product) {
+      // If product exists, update it
+      dispatch(updateProduct(product._id, formData));
+    } else {
+      // Otherwise, create a new product
+      dispatch(uploadProduct(formData));
+    }
   };
-
+  const initialState = {
+    name: product ? product.name : "",
+    brand: product ? product.brand : "",
+    category: product ? product.category : "",
+    price: product ? product.price : "",
+    stock: product ? product.stock : "",
+    salePrice: product ? product.salePrice : "",
+    description: product ? product.description : "",
+  };
   return (
-    <VStack
-      spacing={4}
-      as="form"
-      onSubmit={handleSubmit(onSubmit)}
-      align="stretch"
-      width="100%"
+    <Formik
+      initialValues={initialState}
+      validationSchema={Yup.object({
+        name: Yup.string()
+          .required("Please enter a product name")
+          .min(2, "Too short"),
+        brand: Yup.string().required("Please enter the brand"),
+        category: Yup.string().required("Please enter a category"),
+        price: Yup.number().required("Please enter a price"),
+        stock: Yup.number().required("Please enter stock quantity"),
+        salePrice: Yup.number().when("productIsSale", {
+          is: true,
+          then: Yup.number().required("Please enter sale price"),
+        }),
+        description: Yup.string().required(
+          "Please enter a product description"
+        ),
+      })}
+      onSubmit={onSubmit}
+      innerRef={formikRef}
+      enableReinitialize
     >
-      <HStack spacing="24px">
-        <FormControl>
-          <FormLabel>Tên sản phẩm</FormLabel>
-          <Tooltip label={"Nhập tên sản phẩm của bạn"} fontSize="sm">
-            <Controller
-              name="name"
-              control={control}
-              defaultValue=""
-              render={({ field }) => (
-                <Input variant="flushed" size="md" {...field} />
-              )}
-            />
-          </Tooltip>
-        </FormControl>
-
-        {/* Cover Image */}
-        <Box w="150px" h="100px">
-          <Tooltip label={"Chọn hình ảnh đại diện sản phẩm"} fontSize="sm">
-            <Controller
-              name="coverImage"
-              control={control}
-              render={({ field }) => (
+      {({ handleSubmit, handleChange, values, setFieldValue }) => (
+        <VStack
+          spacing={4}
+          as="form"
+          onSubmit={handleSubmit}
+          align="stretch"
+          width="100%"
+        >
+          {error && <Box color="red.500">Lỗi: {error}</Box>}
+          <HStack spacing="24px">
+            <FormControl>
+              <FormLabel>Tên sản phẩm</FormLabel>
+              <Field name="name">
+                {({ field, form }) => (
+                  <Tooltip label={"Enter your product name"} fontSize="sm">
+                    <Input
+                      {...field}
+                      onChange={(e) => {
+                        setFieldValue("name", e.target.value);
+                        setSlug(createSlug(e.target.value));
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </Field>
+            </FormControl>
+            <Box w="150px" h="100px">
+              <Tooltip label={"Select a cover image"} fontSize="sm">
                 <Box
                   w="150px"
                   h="100px"
@@ -159,195 +247,192 @@ const AddNewProduct = () => {
                   }
                   cursor="pointer"
                 >
-                  <Tooltip label={"Chọn hình ảnh đại diện"} fontSize="sm">
-                    <>
-                      {coverImage ? (
-                        <Image
-                          src={URL.createObjectURL(coverImage)}
-                          alt="Hình ảnh đại diện"
-                          boxSize="100px"
-                          objectFit="cover"
-                        />
-                      ) : (
-                        <Box
-                          w="100px"
-                          h="100px"
-                          border="1px solid gray"
-                          textAlign="center"
-                          lineHeight="100px"
-                          bgColor="gray.100"
-                        >
-                          Hình đại diện
-                        </Box>
-                      )}{" "}
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        id="coverImageInput"
-                        display="none"
-                        onChange={handleCoverImageChange}
-                      />
-                    </>
-                  </Tooltip>
+                  {coverImage ? (
+                    <Image
+                      src={
+                        typeof coverImage === "object"
+                          ? URL?.createObjectURL(coverImage)
+                          : coverImage
+                      }
+                      alt="Cover Image"
+                      boxSize="100px"
+                      objectFit="cover"
+                    />
+                  ) : (
+                    <Box
+                      w="100px"
+                      h="100px"
+                      border="1px solid gray"
+                      textAlign="center"
+                      lineHeight="100px"
+                      bgColor="gray.100"
+                    >
+                      Ảnh đại diện
+                    </Box>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    id="coverImageInput"
+                    display="none"
+                    onChange={handleCoverImageChange}
+                  />
                 </Box>
+              </Tooltip>
+            </Box>
+          </HStack>
+          <HStack spacing={5}>
+            <Checkbox
+              isChecked={productIsNew}
+              onChange={(e) => setProductIsNew(e.target.checked)}
+            >
+              Hàng mới
+            </Checkbox>
+            <Checkbox
+              isChecked={productIsSale}
+              onChange={(e) => setProductIsSale(e.target.checked)}
+            >
+              Giảm giá
+            </Checkbox>
+          </HStack>
+          {/* Brand, Category, Price, Stock */}
+          <FormControl>
+            <FormLabel>Thương hiệu</FormLabel>
+            <Field name="brand">
+              {({ field }) => (
+                <Input {...field} placeholder="Enter brand name" />
               )}
+            </Field>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Danh mục</FormLabel>
+            <Field name="category">
+              {({ field }) => <Input {...field} placeholder="Enter category" />}
+            </Field>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Giá</FormLabel>
+            <Field name="price">
+              {({ field }) => <Input {...field} placeholder="Enter price" />}
+            </Field>
+          </FormControl>
+          {productIsSale && (
+            <FormControl>
+              <FormLabel>Giá sau khi giảm</FormLabel>
+              <Field name="salePrice">
+                {({ field }) => (
+                  <Input {...field} placeholder="Enter sale price" />
+                )}
+              </Field>
+            </FormControl>
+          )}
+          <FormControl>
+            <FormLabel>Số lượng tồn kho</FormLabel>
+            <Field name="stock">
+              {({ field }) => (
+                <Input {...field} placeholder="Enter stock quantity" />
+              )}
+            </Field>
+          </FormControl>
+          {/* Colors */}
+          <FormControl>
+            <FormLabel>Màu sắc</FormLabel>
+            <HStack align="center">
+              <Input
+                size="sm"
+                placeholder="Color Name"
+                value={colorNameInput}
+                onChange={(e) => setColorNameInput(e.target.value)}
+              />
+              <Input
+                size="sm"
+                type="color"
+                value={colorInput}
+                onChange={(e) => setColorInput(e.target.value)}
+              />
+              <Button size="sm" onClick={addColor}>
+                Thêm
+              </Button>
+            </HStack>
+            <HStack mt={2}>
+              {colors.map((color, index) => (
+                <Tag
+                  key={index}
+                  size="sm"
+                  variant="solid"
+                  bgColor={color.color}
+                >
+                  <TagLabel>{color.ten}</TagLabel>
+                  <TagCloseButton onClick={() => removeColor(index)} />
+                </Tag>
+              ))}
+            </HStack>
+          </FormControl>
+          {/* Sizes */}
+          <FormControl>
+            <FormLabel>Kích thước / dung lượng</FormLabel>
+            <HStack>
+              <Input
+                size="sm"
+                placeholder="Enter size"
+                value={sizeInput}
+                onChange={(e) => setSizeInput(e.target.value)}
+              />
+              <Button size="sm" onClick={addSize}>
+                Thêm
+              </Button>
+            </HStack>
+            <HStack mt={2}>
+              {sizes.map((size) => (
+                <Tag key={size} size="sm">
+                  <TagLabel>{size}</TagLabel>
+                  <TagCloseButton onClick={() => removeSize(size)} />
+                </Tag>
+              ))}
+            </HStack>
+          </FormControl>
+          {/* Description */}
+          <FormControl>
+            <FormLabel>Mô tả</FormLabel>
+            <Field name="description">
+              {({ field }) => <Textarea {...field} />}
+            </Field>
+          </FormControl>
+          {/* Additional Images */}
+          <FormControl>
+            <FormLabel>Hình ảnh sản phẩm</FormLabel>
+            <Input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: "none" }}
+              id="fileInput"
             />
-          </Tooltip>
-        </Box>
-      </HStack>
-
-      <HStack spacing={5}>
-        <Controller
-          name="productIsNew"
-          control={control}
-          defaultValue={false}
-          render={({ field }) => <Checkbox {...field}>New</Checkbox>}
-        />
-        <Checkbox colorScheme="red" defaultChecked>
-          Sale off
-        </Checkbox>
-      </HStack>
-
-      <Heading as="h5" size="xs">
-        Thông tin sản phẩm
-      </Heading>
-
-      <FormControl>
-        <FormLabel>Hãng sản xuất</FormLabel>
-        <Controller
-          name="brand"
-          control={control}
-          defaultValue=""
-          render={({ field }) => (
-            <Input size="sm" placeholder="Apple or Samsung etc." {...field} />
-          )}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>Danh mục</FormLabel>
-        <Controller
-          name="category"
-          control={control}
-          defaultValue=""
-          render={({ field }) => (
-            <Input size="sm" placeholder="Smartphone" {...field} />
-          )}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>Giá gốc</FormLabel>
-        <Controller
-          name="price"
-          control={control}
-          defaultValue=""
-          render={({ field }) => (
-            <Input size="sm" placeholder="299.99" {...field} />
-          )}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>Số lượng hàng tồn</FormLabel>
-        <Controller
-          name="stock"
-          control={control}
-          defaultValue=""
-          render={({ field }) => <Input size="sm" {...field} />}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>Colors</FormLabel>
-        <HStack align="center">
-          <Input
-            size="sm"
-            placeholder="Color Name"
-            value={colorNameInput}
-            onChange={(e) => setColorNameInput(e.target.value)}
-          />
-          <Input
-            size="sm"
-            type="color"
-            value={colorInput}
-            onChange={(e) => setColorInput(e.target.value)}
-          />
-          <Button size="sm" onClick={addColor}>
-            Add
+            <Button
+              onClick={() => document.getElementById("fileInput").click()}
+            >
+              Thêm ảnh
+            </Button>
+            <Box mt={2} display="flex" flexWrap="wrap">
+              {previewImages.map((preview, index) => (
+                <Image
+                  key={index}
+                  src={preview}
+                  alt={`Preview ${index}`}
+                  boxSize="100px"
+                  objectFit="cover"
+                  mr={2}
+                />
+              ))}
+            </Box>
+          </FormControl>
+          <Button type="submit" colorScheme="blue">
+            Thêm sản phẩm
           </Button>
-        </HStack>
-        <HStack mt={2}>
-          {colors.map((color, index) => (
-            <Tag key={index} size="sm" variant="solid" bgColor={color.color}>
-              <TagLabel>{color.ten}</TagLabel>
-              <TagCloseButton onClick={() => removeColor(index)} />
-            </Tag>
-          ))}
-        </HStack>
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>Sizes</FormLabel>
-        <HStack>
-          <Input
-            size="sm"
-            placeholder="Add size"
-            value={sizeInput}
-            onChange={(e) => setSizeInput(e.target.value)}
-          />
-          <Button size="sm" onClick={addSize}>
-            Add
-          </Button>
-        </HStack>
-        <HStack mt={2}>
-          {sizes.map((size) => (
-            <Tag key={size} size="sm" variant="solid" colorScheme="green">
-              <TagLabel>{size}</TagLabel>
-              <TagCloseButton onClick={() => removeSize(size)} />
-            </Tag>
-          ))}
-        </HStack>
-      </FormControl>
-      {/* Additional Images */}
-      <FormControl>
-        <FormLabel>Thêm nhiều hình ảnh</FormLabel>
-        <Input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleImageChange}
-        />
-        <HStack mt={2}>
-          {previewImages.map((src, index) => (
-            <Image
-              key={index}
-              src={src}
-              alt={`Hình ${index + 1}`}
-              boxSize="100px"
-              objectFit="cover"
-            />
-          ))}
-        </HStack>
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>Mô tả sản phẩm</FormLabel>
-        <Controller
-          name="description"
-          control={control}
-          defaultValue=""
-          render={({ field }) => (
-            <Textarea size="sm" placeholder="Mô tả sản phẩm" {...field} />
-          )}
-        />
-      </FormControl>
-
-      <VStack>
-        <Button type="submit" variant="outline" w="160px" colorScheme="cyan">
-          Lưu sản phẩm
-        </Button>
-      </VStack>
-    </VStack>
+        </VStack>
+      )}
+    </Formik>
   );
 };
 

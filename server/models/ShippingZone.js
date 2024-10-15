@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
-const shippingZoneSchema = new mongoose.Schema(
-  {
-    zoneName: { type: String, required: true }, // Vùng miền/địa phương
-    shippingFee: { type: Number, required: true }, // Phí giao hàng cho vùng này
-  },
-  { timestamps: true }
-);
-
-const ShippingZone = mongoose.model("ShippingZones", shippingZoneSchema);
+const ShippingZoneSchema = new mongoose.Schema({
+  city: { type: String, required: true }, // City name
+  districts: [
+    {
+      districtName: { type: String },
+      shippingFee: { type: Number }, // Shipping fee for that district
+    },
+  ],
+  defaultFee: { type: Number, required: true, default: 30000 },
+});
+const ShippingZone = mongoose.model("ShippingZones", ShippingZoneSchema);
 export default ShippingZone;

@@ -6,20 +6,38 @@ export class APIFeature {
 
   filter() {
     const queryObj = { ...this.queryString };
+
+    // Handle regex case for "name"
     if (queryObj["name"]?.["regex"])
       queryObj["name"] = `/${queryObj["name"]["regex"]}/`;
+
     const excludeFields = ["page", "limit", "sort", "fields"];
     excludeFields.forEach((el) => delete queryObj[el]);
+
     let queryStr = JSON.stringify(queryObj);
 
+    // Replace comparison operators with MongoDB syntax
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     queryStr = JSON.parse(queryStr);
+
+    // If name is a regex, convert it to RegExp object
     if (queryStr.name) {
       const pattern = queryStr.name.slice(1, -1);
       queryStr.name = new RegExp(pattern, "i");
     }
-    console.log(queryStr);
+
+    // Handle arrays of subdocuments like colors and reviews
+    if (queryStr.colors) {
+      queryStr["colors.ten"] = queryStr.colors;
+      delete queryStr.colors; // remove plain color filter if used
+    }
+
+    if (queryStr.reviews) {
+      queryStr["reviews.rating"] = queryStr.reviews;
+      delete queryStr.reviews; // remove plain reviews filter if used
+    }
+
     this.query = this.query.find(queryStr);
     return this;
   }

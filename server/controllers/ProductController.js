@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 import { APIFeature } from "../utils/apiFeatures.js";
+import Order from "../models/Order.js";
 
 export const getProducts = async (req, res) => {
   const page = parseInt(req.params.page); // 1, 2 or 3
@@ -80,6 +81,8 @@ export const createNewProduct = asyncHandler(async (req, res) => {
     category,
     stock,
     price,
+    salePrice,
+    productIsSale,
     productIsNew,
     description,
     sizes,
@@ -91,13 +94,9 @@ export const createNewProduct = asyncHandler(async (req, res) => {
   const coverImage = req.files?.coverImage?.[0]; // Access the first (and only) cover image
   const imageFiles = req.files?.images || []; // Access additional images
 
-  // Log uploaded files to check
-  console.log("Cover Image:", coverImage);
-  console.log("Additional Images:", imageFiles);
-
   // Check for missing fields
   if (!coverImage) {
-    return res.status(400).send("Cover image is required.");
+    return res.status(400).send({ message: "Cover image is required." });
   }
 
   // Create product object
@@ -107,7 +106,9 @@ export const createNewProduct = asyncHandler(async (req, res) => {
     category,
     stock,
     price,
+    salePrice,
     productIsNew,
+    productIsSaleOff: productIsSale,
     description,
     sizes,
     colors,
@@ -130,42 +131,46 @@ export const createNewProduct = asyncHandler(async (req, res) => {
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
   const {
-    id,
     brand,
     name,
     category,
     stock,
     price,
+    salePrice,
+    productIsSale,
     productIsNew,
     description,
     sizes,
     colors,
+    slug,
   } = req.body;
-  const coverImage = req.file; // Single cover image
-  const imageFiles = req.files; // Additional images
-
+  const coverImage = req.files?.coverImage?.[0];
+  const imageFiles = req.files?.images || [];
   const product = await Product.findById(id);
-
   if (product) {
     product.brand = brand;
     product.name = name;
     product.category = category;
     product.stock = stock;
+    product.salePrice = salePrice;
     product.price = price;
     product.productIsNew = productIsNew;
+    product.productIsSaleOff = productIsSale;
     product.description = description;
     product.sizes = sizes;
     product.colors = colors;
-
+    product.slug = slug;
     if (coverImage) {
-      product.coverImage = `/images/${coverImage.filename}`; // Update cover
+      product.coverImage = coverImage
+        ? `/images/${coverImage.filename}`
+        : product.coverImage;
     }
 
     if (imageFiles) {
-      product.images = imageFiles.map((file) => `/images/${file.filename}`); // Update additional images
+      product.images = imageFiles.map((file) => `/images/${file.filename}`);
     }
-
     await product.save();
     res.json(product);
   } else {
@@ -213,3 +218,185 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error("Product not found.");
   }
 });
+
+export const getOverview = async (req, res) => {
+  try {
+    const overviewData = await Product.aggregate([
+      // Unwind arrays to get distinct values
+      { $unwind: "$colors" },
+      { $unwind: "$sizes" },
+
+      // Group by distinct values
+      {
+        $group: {
+          _id: null,
+          distinctColors: { $addToSet: "$colors.ten" },
+          distinctSizes: { $addToSet: "$sizes" },
+          distinctBrands: { $addToSet: "$brand" },
+          distinctRatings: { $addToSet: "$rating" },
+          minPrice: { $min: "$price" },
+          maxPrice: { $max: "$price" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          distinctColors: 1,
+          distinctSizes: 1,
+          distinctBrands: 1,
+          distinctRatings: 1,
+          minPrice: 1,
+          maxPrice: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ data: overviewData[0] });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving overview data", error });
+  }
+};
+const getDistinctCategories = async (req, res) => {
+  try {
+    const categories = await Product.distinct("category");
+    res.status(200).json({
+      status: "success",
+      data: {
+        categories,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching distinct categories:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+const getDistinctBrands = async (req, res) => {
+  try {
+    const brands = await Product.distinct("brand");
+    res.status(200).json({
+      status: "success",
+      data: {
+        brands,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching distinct brands:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+const getMostSaleOffProducts = async () => {
+  try {
+    const products = await Product.aggregate([
+      {
+        $addFields: {
+          discountPercentage: {
+            $multiply: [
+              {
+                $divide: [
+                  { $subtract: ["$salePrice", "$price"] },
+                  "$salePrice",
+                ],
+              },
+              100,
+            ],
+          },
+        },
+      },
+      { $match: { productIsSaleOff: true } },
+      { $sort: { discountPercentage: -1 } }, // Sort by highest discount
+      { $limit: 6 }, // Limit to 6 products
+    ]);
+
+    // If less than 6 sale-off products are found, query additional products
+    if (products.length < 6) {
+      const additionalProducts = await Product.find()
+        .sort({ price: 1 }) // Sort by newest first
+        .limit(6 - products.length); // Limit to fill the gap
+      return [...products, ...additionalProducts]; // Combine both arrays
+    }
+
+    return products;
+  } catch (error) {
+    console.error("Error getting most sale off products:", error);
+    return [];
+  }
+};
+
+const getMostSoldProducts = async () => {
+  try {
+    const products = await Order.aggregate([
+      { $unwind: "$orderItems" },
+      {
+        $group: {
+          _id: "$orderItems.id",
+          totalSold: { $sum: "$orderItems.qty" },
+        },
+      },
+      { $sort: { totalSold: -1 } }, // Sort by most sold
+      { $limit: 6 }, // Limit to 6 products
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      { $unwind: "$productDetails" },
+      {
+        $project: {
+          _id: "$productDetails._id",
+          name: "$productDetails.name",
+          price: "$productDetails.price",
+          totalSold: 1,
+          coverImage: "$productDetails.coverImage",
+        },
+      },
+    ]);
+
+    // If less than 6 sold products are found, query additional products
+    if (products.length < 6) {
+      const additionalProducts = await Product.find()
+        .sort({ createdAt: -1 }) // Sort by newest first
+        .limit(6 - products.length); // Limit to fill the gap
+      return [...products, ...additionalProducts]; // Combine both arrays
+    }
+
+    return products;
+  } catch (error) {
+    console.error("Error getting most sold products:", error);
+    return [];
+  }
+};
+
+// Route handler for `getProductsHome`
+// Enhanced getProductsHome function
+export const getProductsHome = async (req, res) => {
+  try {
+    // Execute all async operations in parallel using Promise.all
+    const [
+      mostSaleOffProducts,
+      mostSoldProducts,
+      distinctBrands,
+      distinctCategories,
+    ] = await Promise.all([
+      getMostSaleOffProducts(),
+      getMostSoldProducts(),
+      Product.distinct("brand"),
+      Product.distinct("category"),
+    ]);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        mostSaleOffProducts,
+        mostSoldProducts,
+        brands: distinctBrands,
+        categories: distinctCategories,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching home products:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

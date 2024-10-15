@@ -1,61 +1,71 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState = {
-	error: null,
-	userList: null,
-	userRemoval: false,
-	orders: null,
-	orderRemoval: false,
-	deliveredFlag: false,
+  loading: false,
+  error: null,
+  userList: null,
+  userRemoval: false,
+  orders: null,
+  orderRemoval: false,
+  deliveredFlag: false,
 };
 
 export const adminSlice = createSlice({
-	name: 'admin',
-	initialState,
-	reducers: {
-		setLoading: (state) => {
-			state.loading = false;
-		},
-		setError: (state, { payload }) => {
-			state.error = payload;
-			state.loading = false;
-		},
-		getUsers: (state, { payload }) => {
-			state.userList = payload;
-			state.error = null;
-			state.loading = false;
-		},
-		getOrders: (state, { payload }) => {
-			state.orders = payload;
-			state.error = null;
-			state.loading = false;
-		},
-		userDelete: (state) => {
-			state.error = null;
-			state.loading = false;
-			state.userRemoval = true;
-		},
-		orderDelete: (state) => {
-			state.error = null;
-			state.loading = false;
-			state.orderRemoval = true;
-		},
-		resetError: (state) => {
-			state.error = null;
-			state.loading = false;
-			state.userRemoval = false;
-			state.deliveredFlag = false;
-			state.orderRemoval = false;
-		},
-		setDeliveredFlag: (state) => {
-			state.deliveredFlag = true;
-			state.loading = false;
-		},
-	},
+  name: "admin",
+  initialState,
+  reducers: {
+    setLoading: (state) => {
+      state.loading = true;
+    },
+    setError: (state, { payload }) => {
+      state.error = payload;
+      console.log(payload, state.error);
+      state.loading = false;
+    },
+    getUsers: (state, { payload }) => {
+      state.userList = payload;
+      state.error = null;
+      state.loading = false;
+    },
+    getOrders: (state, { payload }) => {
+      state.orders = payload;
+      state.error = null;
+      state.loading = false;
+    },
+    userDelete: (state) => {
+      state.error = null;
+      state.loading = false;
+      state.userRemoval = true;
+    },
+    orderDelete: (state) => {
+      state.error = null;
+      state.loading = false;
+      state.orderRemoval = true;
+    },
+    resetError: (state) => {
+      state.error = null;
+      state.loading = false;
+      state.userRemoval = false;
+      state.deliveredFlag = false;
+      state.orderRemoval = false;
+    },
+    setDeliveredFlag: (state) => {
+      state.deliveredFlag = true;
+      state.loading = false;
+    },
+  },
 });
 
-export const { setDeliveredFlag, setError, setLoading, resetError, getOrders, getUsers, userDelete, orderDelete } =
-	adminSlice.actions;
+export const {
+  setDeliveredFlag,
+  setError,
+  setLoading,
+  resetError,
+  getOrders,
+  getUsers,
+  userDelete,
+  orderDelete,
+} = adminSlice.actions;
 
 export default adminSlice.reducer;
 

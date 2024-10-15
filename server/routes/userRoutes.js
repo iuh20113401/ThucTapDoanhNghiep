@@ -11,11 +11,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const userRoutes = express.Router();
-console.log("Token secret:", process.env.TOKEN_SECRET);
 
 //TODO: redefine expiresIn
 const genToken = (id) => {
-  console.log(process.env.TOKEN_SECRET);
   return jwt.sign({ id }, process.env.TOKEN_SECRET, { expiresIn: "1d" });
 };
 
@@ -132,7 +130,6 @@ const passwordReset = asyncHandler(async (req, res) => {
 //google login
 const googleLogin = asyncHandler(async (req, res) => {
   const { googleId, email, name, googleImage } = req.body;
-  console.log(googleId, email, name, googleImage);
 
   try {
     const user = await User.findOne({ googleId: googleId });

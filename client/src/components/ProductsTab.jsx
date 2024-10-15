@@ -1,33 +1,30 @@
 import {
-  Accordion,
-  AccordionButton,
-  AccordionItem,
-  AccordionPanel,
+  Box,
+  Image,
+  Text,
+  Badge,
+  Stack,
+  Spinner,
+  Wrap,
+  SimpleGrid,
   Alert,
-  AlertDescription,
   AlertIcon,
   AlertTitle,
-  Box,
-  Spinner,
-  Stack,
-  Table,
-  Tbody,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  Wrap,
+  AlertDescription,
   useToast,
+  Flex,
+  Heading,
+  Button,
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  getProduct,
   getProducts,
   resetProductError,
 } from "../redux/actions/productActions";
-import ProductTableItem from "./ProductTableItem";
-import AddNewProduct from "./AddNewProduct";
-import { Link } from "react-router-dom";
+import formatPrice from "../utils/FormatVietNamCurrency";
+import { Link, useNavigate } from "react-router-dom";
 
 const ProductsTab = () => {
   const dispatch = useDispatch();
@@ -49,71 +46,99 @@ const ProductsTab = () => {
   }, [dispatch, toast, productUpdate]);
 
   return (
-    <Box>
+    <Box p={4}>
+      {/* Error Handling */}
       {error && (
-        <Alert status="error">
+        <Alert status="error" mb={4}>
           <AlertIcon />
-          <AlertTitle>Upps!</AlertTitle>
+          <AlertTitle>Oops! Something went wrong.</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
       {loading ? (
-        <Wrap justify="center">
-          <Stack direction="row" spacing="4">
-            <Spinner
-              mt="20"
-              thickness="2px"
-              speed="0.65s"
-              emptyColor="gray.200"
-              color="cyan.500"
-              size="xl"
-            />
-          </Stack>
+        <Wrap justify="center" mt={10}>
+          <Spinner
+            thickness="4px"
+            speed="0.65s"
+            emptyColor="gray.200"
+            color="cyan.500"
+            size="xl"
+          />
         </Wrap>
       ) : (
         <Box>
-          <Accordion allowToggle>
-            <AccordionItem>
-              <Link to={"./addnewproduct"}>
-                <h2>
-                  <AccordionButton>
-                    <Box flex="1" textAlign="right">
-                      <Box>
-                        <Text mr="8px" fontWeight="bold">
-                          Add a new Product
-                        </Text>
-                      </Box>
-                    </Box>
-                  </AccordionButton>
-                </h2>
-              </Link>
-              <AccordionPanel pb="4">
-                <Table>
-                  <AddNewProduct />
-                </Table>
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion>
-          <Table variant="simple" size="lg">
-            <Thead>
-              <Tr>
-                <Th>Images</Th>
-                <Th>Description</Th>
-                <Th>Brand & Name</Th>
-                <Th>StripeId & Subtitle</Th>
-                <Th>Category & Price</Th>
-                <Th>Stock & new Badge</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {products.length > 0 &&
-                products.map((product) => (
-                  <ProductTableItem key={product._id} product={product} />
-                ))}
-            </Tbody>
-          </Table>
+          {" "}
+          <Flex justify="space-between" align="center" mb={6}>
+            <Link to="addnewproduct">
+              <Button colorScheme="cyan">Thêm sản phẩm mới</Button>
+            </Link>
+          </Flex>
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={4}>
+            {products.length > 0 ? (
+              products.map((product) => (
+                <CompactProductCard key={product._id} product={product} />
+              ))
+            ) : (
+              <Text>No products available. Please add new products.</Text>
+            )}
+          </SimpleGrid>
         </Box>
       )}
+    </Box>
+  );
+};
+
+// Compact Product Card Component
+const CompactProductCard = ({ product }) => {
+  const { name, stock, price, coverImage, category, brand } = product;
+
+  return (
+    <Box
+      borderWidth="1px"
+      borderRadius="md"
+      as={Link}
+      to={`updateProduct/${product._id}`}
+      overflow="hidden"
+      p={2}
+      boxShadow="sm"
+      _hover={{ boxShadow: "md" }}
+      cursor={"pointer"}
+    >
+      <Flex>
+        <Image
+          src={coverImage || "https://via.placeholder.com/50"}
+          alt={name}
+          boxSize="50px"
+          objectFit="cover"
+          mr={4}
+        />
+
+        <Stack spacing={1} fontSize="sm">
+          <Text fontWeight="bold" noOfLines={1}>
+            {name}
+          </Text>
+
+          <Text color="cyan.500" fontWeight="semibold">
+            {formatPrice(price)}
+          </Text>
+
+          <Text>
+            {stock > 0 ? (
+              <Badge colorScheme="green">In Stock: {stock}</Badge>
+            ) : (
+              <Badge colorScheme="red">Out of Stock</Badge>
+            )}
+          </Text>
+
+          <Text>
+            <strong>Brand:</strong> {brand}
+          </Text>
+          <Text noOfLines={1}>
+            <strong>Categories:</strong> {category}
+          </Text>
+        </Stack>
+      </Flex>
     </Box>
   );
 };

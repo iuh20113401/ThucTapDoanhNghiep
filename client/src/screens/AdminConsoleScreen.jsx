@@ -14,6 +14,7 @@ import UsersTab from "../components/UsersTab";
 import OrdersTab from "../components/OrdersTab";
 import ReviewsTab from "../components/ReviewsTab";
 import ProductsTab from "../components/ProductsTab";
+import ShippingFeeTab from "../components/ShippingFeeTab";
 
 const AdminConsoleScreen = () => {
   const { userInfo } = useSelector((state) => state.user);
@@ -39,6 +40,7 @@ const AdminConsoleScreen = () => {
               <Tab>Products</Tab>
               <Tab>Reviews</Tab>
               <Tab>Orders</Tab>
+              <Tab>Shipping fee</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -52,6 +54,9 @@ const AdminConsoleScreen = () => {
               </TabPanel>
               <TabPanel>
                 <OrdersTab />
+              </TabPanel>
+              <TabPanel>
+                <ShippingFeeTab />
               </TabPanel>
             </TabPanels>
           </Tabs>

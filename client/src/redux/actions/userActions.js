@@ -144,7 +144,6 @@ export const resetPassword = (password, token) => async (dispatch) => {
       { password },
       config
     );
-    console.log(data, status);
     dispatch(setServerResponseMsg(data, status));
     dispatch(setServerResponseStatus(status));
   } catch (error) {

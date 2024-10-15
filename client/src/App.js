@@ -82,6 +82,10 @@ function App() {
                 <Route path="/success" element={<SuccessScreen />} />
                 <Route path="/admin-console" element={<AdminConsoleScreen />} />
                 <Route
+                  path="/admin-console/updateProduct/:id"
+                  element={<AddNewProductScreen />}
+                />
+                <Route
                   path="/admin-console/AddNewProduct"
                   element={<AddNewProductScreen />}
                 />

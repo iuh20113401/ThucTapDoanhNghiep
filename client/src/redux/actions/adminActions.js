@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  setProductInsertFlag,
   setProducts,
   setProductUpdateFlag,
   setReviewRemovalFlag,
@@ -16,7 +17,7 @@ import {
 } from "../slices/admin";
 
 export const getAllUsers = () => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
@@ -32,18 +33,20 @@ export const getAllUsers = () => async (dispatch, getState) => {
     const { data } = await axios.get("http://localhost:5000/api/users", config);
     dispatch(getUsers(data));
   } catch (error) {
-    setError(
-      error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message
-        ? error.message
-        : "An expected error has occured. Please try again later."
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
     );
   }
 };
 
 export const deleteUser = (id) => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
@@ -62,18 +65,20 @@ export const deleteUser = (id) => async (dispatch, getState) => {
     );
     dispatch(userDelete(data));
   } catch (error) {
-    setError(
-      error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message
-        ? error.message
-        : "An expected error has occured. Please try again later."
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
     );
   }
 };
 
 export const getAllOrders = () => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
@@ -92,18 +97,20 @@ export const getAllOrders = () => async (dispatch, getState) => {
     );
     dispatch(getOrders(data));
   } catch (error) {
-    setError(
-      error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message
-        ? error.message
-        : "An expected error has occured. Please try again later."
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
     );
   }
 };
 
 export const deleteOrder = (id) => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
@@ -122,18 +129,20 @@ export const deleteOrder = (id) => async (dispatch, getState) => {
     );
     dispatch(orderDelete(data));
   } catch (error) {
-    setError(
-      error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message
-        ? error.message
-        : "An expected error has occured. Please try again later."
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
     );
   }
 };
 
 export const setDelivered = (id) => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
@@ -149,12 +158,14 @@ export const setDelivered = (id) => async (dispatch, getState) => {
     await axios.put(`http://localhost:5000/api/orders/${id}`, {}, config);
     dispatch(setDeliveredFlag());
   } catch (error) {
-    setError(
-      error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message
-        ? error.message
-        : "An expected error has occured. Please try again later."
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
     );
   }
 };
@@ -163,68 +174,41 @@ export const resetErrorAndRemoval = () => async (dispatch) => {
   dispatch(resetError());
 };
 
-export const updateProduct =
-  (
-    brand,
-    name,
-    category,
-    stock,
-    price,
-    id,
-    productIsNew,
-    description,
-    subtitle,
-    stripeId,
-    imageOne,
-    imageTwo
-  ) =>
-  async (dispatch, getState) => {
-    setLoading();
-    const {
-      user: { userInfo },
-    } = getState();
+export const updateProduct = (id, body) => async (dispatch, getState) => {
+  dispatch(setLoading());
+  const {
+    user: { userInfo },
+  } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-        "Content-Type": "application/json",
-      },
-    };
+  const config = {
+    headers: {
+      Authorization: `Bearer ${userInfo.token}`,
+    },
+  };
 
-    try {
-      const { data } = await axios.put(
-        "http://localhost:5000/api/products",
-        {
-          brand,
-          name,
-          category,
-          stock,
-          price,
-          id,
-          productIsNew,
-          description,
-          subtitle,
-          stripeId,
-          imageOne,
-          imageTwo,
-        },
-        config
-      );
-      dispatch(setProducts(data));
-      dispatch(setProductUpdateFlag());
-    } catch (error) {
+  try {
+    const { data } = await axios.patch(
+      `http://localhost:5000/api/products/${id}`,
+      body,
+      config
+    );
+    dispatch(setProducts(data));
+    dispatch(setProductUpdateFlag());
+  } catch (error) {
+    dispatch(
       setError(
         error.response && error.response.data.message
           ? error.response.data.message
           : error.message
           ? error.message
           : "An expected error has occured. Please try again later."
-      );
-    }
-  };
+      )
+    );
+  }
+};
 
 export const deleteProduct = (id) => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
@@ -256,11 +240,10 @@ export const deleteProduct = (id) => async (dispatch, getState) => {
 };
 
 export const uploadProduct = (newProduct) => async (dispatch, getState) => {
-  setLoading();
+  dispatch(setLoading());
   const {
     user: { userInfo },
   } = getState();
-
   const config = {
     headers: {
       Authorization: `Bearer ${userInfo.token}`,
@@ -275,21 +258,24 @@ export const uploadProduct = (newProduct) => async (dispatch, getState) => {
       config
     );
     dispatch(setProducts(data));
-    dispatch(setProductUpdateFlag());
+    dispatch(setProductInsertFlag());
   } catch (error) {
-    setError(
-      error.response && error.response.data.message
-        ? error.response.data.message
-        : error.message
-        ? error.message
-        : "An expected error has occured. Please try again later."
+    console.log(error);
+    dispatch(
+      setError(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "An expected error has occured. Please try again later."
+      )
     );
   }
 };
 
 export const removeReview =
   (productId, reviewId) => async (dispatch, getState) => {
-    setLoading();
+    dispatch(setLoading());
     const {
       user: { userInfo },
     } = getState();
@@ -300,7 +286,6 @@ export const removeReview =
         "Content-Type": "application/json",
       },
     };
-    console.log("asdfdsaf");
     try {
       const { data } = await axios.put(
         `http://localhost:5000/api/products/${productId}/${reviewId}`,
@@ -310,12 +295,14 @@ export const removeReview =
       dispatch(setProducts(data));
       dispatch(setReviewRemovalFlag());
     } catch (error) {
-      setError(
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message
-          ? error.message
-          : "An expected error has occured. Please try again later."
+      dispatch(
+        setError(
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message
+            ? error.message
+            : "An expected error has occured. Please try again later."
+        )
       );
     }
   };

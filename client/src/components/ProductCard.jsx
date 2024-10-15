@@ -63,7 +63,6 @@ const ProductCard = ({ product, loading }) => {
       isClosable: true,
     });
   };
-
   return (
     <Skeleton isLoaded={!loading}>
       <Box
@@ -98,10 +97,11 @@ const ProductCard = ({ product, loading }) => {
         </Flex>
         <Badge colorScheme="cyan">{product.category}</Badge>{" "}
         <Text
-          noOfLines={2}
+          noOfLines={3}
           fontSize={fontSizeTitle} // Responsive font size
           fontWeight="semibold"
           mt="2"
+          height={{ base: "80px", md: "100px" }}
         >
           {product.brand} {` `} {product.name}
         </Text>
@@ -109,18 +109,29 @@ const ProductCard = ({ product, loading }) => {
           {product.subtitle}
         </Text>
         <Flex
-          justify={{ base: "center", md: "space-between" }} // Centered on mobile, space-between on larger screens
-          // alignItems="center"
+          justify={{ base: "center", md: "space-between" }}
           mt="2"
-          flexDirection={{ base: "column", md: "row" }} // Vertical on mobile, horizontal on larger screens
+          flexDirection={{ base: "column", md: "row" }}
         >
-          {/* Margin adjustment for stacking */}
-          <Text
-            fontSize={priceFontSize} // Responsive font size
-            fontWeight="semibold"
-            color="cyan.600"
-          >
-            <Text>{formatPrice(product.price)}</Text>
+          <Text fontSize={priceFontSize} fontWeight="semibold" color="cyan.600">
+            {product.salePrice ? (
+              <Flex align="center">
+                <Text
+                  as="span"
+                  mr="2"
+                  color="gray.500"
+                  fontSize="md"
+                  textDecoration="line-through"
+                >
+                  {formatPrice(product.price)}
+                </Text>
+                <Text as="span" color="cyan.600">
+                  {formatPrice(product.salePrice)}
+                </Text>
+              </Flex>
+            ) : (
+              <Text>{formatPrice(product.price)}</Text>
+            )}
           </Text>
         </Flex>
         <Flex justify="space-between" mt="2">
