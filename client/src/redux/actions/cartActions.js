@@ -18,6 +18,7 @@ export const addCartItem = (id, qty, color, size) => async (dispatch) => {
       name: data.name,
       subtitle: data.subtitle,
       image: data.images[0],
+      coverImage: data.coverImage,
       price: data.price,
       stock: data.stock,
       brand: data.brand,
