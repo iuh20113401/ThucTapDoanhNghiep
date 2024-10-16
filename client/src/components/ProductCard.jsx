@@ -51,13 +51,13 @@ const ProductCard = ({ product, loading }) => {
   }, [product, cartItems]);
 
   const addItem = (id) => {
-    const item = cartItems.some((cartItem) => cartItem.id === id);
-    if (item) {
+    if (cartItems.some((cartItem) => cartItem.id === id)) {
+      const item = cartItems.find((cartItem) => cartItem.id === id);
       dispatch(
         addCartItem(id, item.qty + 1, item?.colors[0].ten, item?.sizes[0])
       );
     } else {
-      dispatch(addCartItem(id, 1, item?.colors[0].ten, item?.sizes[0]));
+      dispatch(addCartItem(id, 1, product?.colors[0].ten, product?.sizes[0]));
     }
     toast({
       description: "Item has been added.",
