@@ -13,7 +13,8 @@ import { addCartItem, removeCartItem } from "../redux/actions/cartActions";
 import formatPrice from "../utils/FormatVietNamCurrency";
 
 const CartItem = ({ cartItem }) => {
-  const { name, color, size, image, price, stock, qty, id, brand } = cartItem;
+  const { name, color, size, coverImage, price, stock, qty, id, brand } =
+    cartItem;
   const dispatch = useDispatch();
 
   return (
@@ -23,7 +24,7 @@ const CartItem = ({ cartItem }) => {
         w="120px"
         h="120px"
         fit="cover"
-        src={image}
+        src={`${process.env.REACT_APP_SERVER}/${image}`}
         fallbackSrc="https://via.placeholder.com/150"
       />
       <VStack p="2" w="100%" align="stretch">
