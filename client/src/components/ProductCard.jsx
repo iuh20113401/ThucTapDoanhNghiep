@@ -53,7 +53,9 @@ const ProductCard = ({ product, loading }) => {
   const addItem = (id) => {
     if (cartItems.some((cartItem) => cartItem.id === id)) {
       const item = cartItems.find((cartItem) => cartItem.id === id);
-      dispatch(addCartItem(id, item.qty + 1));
+      dispatch(
+        addCartItem(id, item.qty + 1, item?.colors[0].ten, item?.sizes[0])
+      );
     } else {
       dispatch(addCartItem(id, 1));
     }
@@ -85,9 +87,9 @@ const ProductCard = ({ product, loading }) => {
           {product.stock < 5 ? (
             <Badge colorScheme="yellow">only {product.stock} left</Badge>
           ) : product.stock < 1 ? (
-            <Badge colorScheme="red">Sold out</Badge>
+            <Badge colorScheme="red">Hết hàng</Badge>
           ) : (
-            <Badge colorScheme="green">In Stock</Badge>
+            <Badge colorScheme="green">Còn hàng</Badge>
           )}
           {product.productIsNew && (
             <Badge ml="2" colorScheme="purple">
