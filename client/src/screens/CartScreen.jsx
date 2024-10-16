@@ -81,7 +81,7 @@ const CartScreen = () => {
                   to="/products"
                   color={mode("cyan.500", "cyan.200")}
                 >
-                  Continue Shopping
+                  Tiếp tục mua sắm{" "}
                 </Link>
               </HStack>
             </Flex>

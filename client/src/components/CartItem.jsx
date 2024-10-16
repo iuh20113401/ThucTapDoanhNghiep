@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
 import { addCartItem, removeCartItem } from "../redux/actions/cartActions";
+import formatPrice from "../utils/FormatVietNamCurrency";
 
 const CartItem = ({ cartItem }) => {
   const { name, color, size, image, price, stock, qty, id, brand } = cartItem;
@@ -59,7 +60,7 @@ const CartItem = ({ cartItem }) => {
               </option>
             ))}
           </Select>
-          <Text fontWeight="bold">${price}</Text>
+          <Text fontWeight="bold">{formatPrice(price)}</Text>
         </Flex>
       </VStack>
     </Flex>
