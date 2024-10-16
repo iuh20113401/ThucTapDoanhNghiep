@@ -57,7 +57,7 @@ const ProductCard = ({ product, loading }) => {
         addCartItem(id, item.qty + 1, item?.colors[0].ten, item?.sizes[0])
       );
     } else {
-      dispatch(addCartItem(id, 1));
+      dispatch(addCartItem(id, 1, item?.colors[0].ten, item?.sizes[0]));
     }
     toast({
       description: "Item has been added.",
