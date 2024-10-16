@@ -51,8 +51,8 @@ const ProductCard = ({ product, loading }) => {
   }, [product, cartItems]);
 
   const addItem = (id) => {
-    if (cartItems.some((cartItem) => cartItem.id === id)) {
-      const item = cartItems.find((cartItem) => cartItem.id === id);
+    const item = cartItems.some((cartItem) => cartItem.id === id);
+    if (item) {
       dispatch(
         addCartItem(id, item.qty + 1, item?.colors[0].ten, item?.sizes[0])
       );
