@@ -27,15 +27,15 @@ const ShippingInformation = () => {
 
   // Fetch cities when the component is mounted
   const fetchDistrics = useCallback(async () => {
-    const cityCode = cities.filter((ct) => ct.name === selectedCity)?.[0]?.[
-      "code"
-    ];
+    const cityCode = cities.filter(
+      (ct) => ct.province_name === selectedCity
+    )?.[0]?.["province_id"];
     try {
       const response = await fetch(
-        `https://provinces.open-api.vn/api/p/${cityCode}?depth=2`
+        `https://vapi.vnappmob.com/api/province/district/${cityCode}`
       );
       const data = await response.json();
-      setDistricts(data.districts || []);
+      setDistricts(data.results || []);
     } catch (error) {
       console.error("Error fetching districts:", error);
     }
@@ -44,9 +44,9 @@ const ShippingInformation = () => {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const response = await fetch("https://provinces.open-api.vn/api/p/"); // Example API for cities
+        const response = await fetch("https://vapi.vnappmob.com/api/province/"); // Example API for cities
         const data = await response.json();
-        setCities(data); // Set the list of cities
+        setCities(data.results); // Set the list of cities
       } catch (error) {
         console.error("Error fetching cities:", error);
       }
@@ -108,8 +108,8 @@ const ShippingInformation = () => {
               >
                 <option value="">Chọn tỉnh / thành phố</option>
                 {cities.map((city) => (
-                  <option key={city.code} value={city.name}>
-                    {city.name}
+                  <option key={city.province_id} value={city.province_name}>
+                    {city.province_name}
                   </option>
                 ))}
               </Select>
@@ -124,8 +124,11 @@ const ShippingInformation = () => {
                 >
                   <option value="">Chọn quận huyện </option>
                   {districts.map((district) => (
-                    <option key={district.code} value={district.name}>
-                      {district.name}
+                    <option
+                      key={district.district_id}
+                      value={district.district_name}
+                    >
+                      {district.district_name}
                     </option>
                   ))}
                 </Select>

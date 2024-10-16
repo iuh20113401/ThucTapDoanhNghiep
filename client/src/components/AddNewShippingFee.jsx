@@ -16,9 +16,9 @@ function AddNewShippingFee({ onClose }) {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const response = await fetch("https://provinces.open-api.vn/api/p/"); // Example API for cities
+        const response = await fetch("https://vapi.vnappmob.com/api/province/"); // Example API for cities
         const data = await response.json();
-        setCities(data); // Set the list of cities
+        setCities(data.results); // Set the list of cities
       } catch (error) {
         console.error("Error fetching cities:", error);
       }
@@ -30,14 +30,17 @@ function AddNewShippingFee({ onClose }) {
   const handleCityChange = async (event) => {
     const cityName = event.target.value;
     setSelectedCity(cityName);
-    const cityCode = cities.filter((ct) => ct.name === cityName)?.[0]?.["code"];
+    const cityCode = cities.filter(
+      (ct) => ct.province_name === cityName
+    )?.[0]?.["province_id"];
     console.log(cityCode);
     try {
       const response = await fetch(
-        `https://provinces.open-api.vn/api/p/${cityCode}?depth=2`
+        `https://vapi.vnappmob.com/api/province/district/${cityCode}`
       ); // Fetch districts based on selected city
       const data = await response.json();
-      setDistricts(data.districts || []);
+      console.log(data);
+      setDistricts(data.results || []);
     } catch (error) {
       console.error("Error fetching districts:", error);
     }
@@ -50,50 +53,48 @@ function AddNewShippingFee({ onClose }) {
     }
 
     dispatch(setShippingFee(selectedCity, selectedDistrict, shippingFeeValue));
-    onClose(); // Close the modal after submission
-  };
+    onClose();
 
-  return (
-    <Box>
-      {/* City Dropdown */}
-      <Select onChange={handleCityChange} value={selectedCity}>
-        <option value="">Chọn tình / thành phố</option>
-        {cities.map((city) => (
-          <option key={city.code} value={city.name}>
-            {city.name}
-          </option>
-        ))}
-      </Select>
-
-      {/* District Dropdown */}
-      {districts.length > 0 && (
-        <Select
-          onChange={(e) => setSelectedDistrict(e.target.value)}
-          value={selectedDistrict}
-          mt={2}
-        >
-          <option value="">Chọn quận huyện (nếu cần)</option>
-          {districts.map((district) => (
-            <option key={district.code} value={district.name}>
-              {district.name}
+    return (
+      <Box>
+        {/* City Dropdown */}
+        <Select onChange={handleCityChange} value={selectedCity}>
+          <option value="">Chọn tình / thành phố</option>
+          {cities.map((city) => (
+            <option key={city.province_id} value={city.province_name}>
+              {city.province_name}
             </option>
           ))}
         </Select>
-      )}
 
-      <Input
-        mt={2}
-        type="number"
-        placeholder="Nhập giá ship"
-        value={shippingFeeValue}
-        onChange={(e) => setShippingFeeValue(e.target.value)}
-      />
+        {districts.length > 0 && (
+          <Select
+            onChange={(e) => setSelectedDistrict(e.target.value)}
+            value={selectedDistrict}
+            mt={2}
+          >
+            <option value="">Chọn quận huyện (nếu cần)</option>
+            {districts.map((district) => (
+              <option key={district.district_id} value={district.district_name}>
+                {district.district_name}
+              </option>
+            ))}
+          </Select>
+        )}
 
-      <Button mt={4} colorScheme="teal" onClick={handleSubmit}>
-        Add Shipping Fee
-      </Button>
-    </Box>
-  );
+        <Input
+          mt={2}
+          type="number"
+          placeholder="Nhập giá ship"
+          value={shippingFeeValue}
+          onChange={(e) => setShippingFeeValue(e.target.value)}
+        />
+
+        <Button mt={4} colorScheme="teal" onClick={handleSubmit}>
+          Add Shipping Fee
+        </Button>
+      </Box>
+    );
+  };
 }
-
 export default AddNewShippingFee;
