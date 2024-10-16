@@ -53,10 +53,9 @@ const ProductCard = ({ product, loading }) => {
   const addItem = (id) => {
     if (cartItems.some((cartItem) => cartItem.id === id)) {
       const item = cartItems.find((cartItem) => cartItem.id === id);
-      dispatch(
-        addCartItem(id, item.qty + 1, item?.colors[0].ten, item?.sizes[0])
-      );
+      dispatch(addCartItem(id, item.qty + 1, item?.color, item?.sizes));
     } else {
+      console.log(product);
       dispatch(addCartItem(id, 1, product?.colors[0].ten, product?.sizes[0]));
     }
     toast({
