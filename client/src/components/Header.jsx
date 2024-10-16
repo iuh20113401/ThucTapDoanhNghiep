@@ -41,7 +41,6 @@ import { googleLogout } from "@react-oauth/google";
 
 const Links = [
   { name: "Danh mục sản phẩm", route: "/products" },
-  { name: "Giảm giá sốc", route: "/hot-deals" },
   { name: "Liên hệ", route: "/contact" },
   // { name: 'Services', route: '/services' },
 ];
