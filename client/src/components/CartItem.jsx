@@ -24,7 +24,7 @@ const CartItem = ({ cartItem }) => {
         w="120px"
         h="120px"
         fit="cover"
-        src={`${process.env.REACT_APP_SERVER}/${coverImage}`}
+        src={`${process.env.REACT_APP_SERVER}${coverImage}`}
         fallbackSrc="https://via.placeholder.com/150"
       />
       <VStack p="2" w="100%" align="stretch">
