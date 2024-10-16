@@ -8,6 +8,7 @@ import Stripe from "stripe";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import { protectRoute } from "../middleware/authMiddleware.js";
+import { sendVerificationEmail } from "../middleware/sendOrderEmail.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -184,7 +185,7 @@ stripeRoute.route("/").post(protectRoute, async (req, res) => {
     });
 
     const newOrder = await order.save();
-
+    sendVerificationEmail(newOrder, newOrder.email, newOrder.username);
     data.cartItems.forEach(async (cartItem) => {
       let product = await Product.findById(cartItem.id);
       product.stock = product.stock - cartItem.qty;
