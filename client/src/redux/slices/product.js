@@ -99,6 +99,7 @@ export const productsSlice = createSlice({
     setProductUpdateFlag: (state) => {
       state.productUpdate = true;
       state.loading = false;
+      console.log(state.loading);
     },
     setProductInsertFlag: (state) => {
       state.productInsert = true;

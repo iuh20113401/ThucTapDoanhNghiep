@@ -37,13 +37,13 @@ const createSlug = (name) => {
 const AddNewProduct = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { product, productInsert, productUpdate } = useSelector(
+  const { product, productInsert, productUpdate, loading } = useSelector(
     (state) => state.product
   );
   useEffect(() => {
     if (id) dispatch(getProduct(id));
   }, [dispatch, id]);
-  const { loading, error } = useSelector((state) => state.admin);
+  const { error } = useSelector((state) => state.admin);
   const [colors, setColors] = useState(product ? product.colors : []);
   const [sizes, setSizes] = useState(product ? product.sizes : []);
   const [colorInput, setColorInput] = useState("");
@@ -67,6 +67,10 @@ const AddNewProduct = () => {
     if (product) {
       setColors(product.colors);
       setSizes(product.sizes);
+
+      setPreviewImages(
+        product.images.map((img) => `${process.env.REACT_APP_SERVER}${img}`)
+      );
       setProductIsNew(product.productIsNew);
       setProductIsSale(product.productIsSaleOff);
       setCoverImage(product.coverImage);
@@ -103,12 +107,14 @@ const AddNewProduct = () => {
   useEffect(() => {
     if (!loading && !error && (productInsert || productUpdate)) {
       toast({
-        description: "Thêm sản phẩm thành công",
+        description: product
+          ? "Cập nhật sản phẩm thành công"
+          : "Thêm sản phẩm thành công",
         status: "success",
         isClosable: "true",
       });
       formikRef.current.resetForm();
-      reset();
+      if (!product) reset();
       dispatch(resetErrorAndRemoval());
       dispatch(resetProductError());
     }
@@ -138,6 +144,16 @@ const AddNewProduct = () => {
     const previews = files.map((file) => URL.createObjectURL(file));
     setPreviewImages((prevPreviews) => [...prevPreviews, ...previews]);
   };
+
+  const removeImage = (indexToRemove) => {
+    setImageFiles((prevFiles) =>
+      prevFiles.filter((_, index) => index !== indexToRemove)
+    );
+
+    setPreviewImages((prevPreviews) =>
+      prevPreviews.filter((_, index) => index !== indexToRemove)
+    );
+  };
   const onSubmit = (values) => {
     const formData = new FormData();
     formData.append("name", values.name);
@@ -160,7 +176,6 @@ const AddNewProduct = () => {
     });
 
     if (coverImage) {
-      console.log(coverImage);
       formData.append("coverImage", coverImage);
     }
     imageFiles.forEach((file) => {
@@ -172,10 +187,8 @@ const AddNewProduct = () => {
     }
 
     if (product) {
-      // If product exists, update it
       dispatch(updateProduct(product._id, formData));
     } else {
-      // Otherwise, create a new product
       dispatch(uploadProduct(formData));
     }
   };
@@ -252,7 +265,7 @@ const AddNewProduct = () => {
                       src={
                         typeof coverImage === "object"
                           ? URL?.createObjectURL(coverImage)
-                          : coverImage
+                          : `${process.env.REACT_APP_SERVER}${coverImage}`
                       }
                       alt="Cover Image"
                       boxSize="100px"
@@ -398,7 +411,6 @@ const AddNewProduct = () => {
               {({ field }) => <Textarea {...field} />}
             </Field>
           </FormControl>
-          {/* Additional Images */}
           <FormControl>
             <FormLabel>Hình ảnh sản phẩm</FormLabel>
             <Input
@@ -406,29 +418,33 @@ const AddNewProduct = () => {
               multiple
               accept="image/*"
               onChange={handleImageChange}
-              style={{ display: "none" }}
-              id="fileInput"
             />
-            <Button
-              onClick={() => document.getElementById("fileInput").click()}
-            >
-              Thêm ảnh
-            </Button>
-            <Box mt={2} display="flex" flexWrap="wrap">
-              {previewImages.map((preview, index) => (
-                <Image
-                  key={index}
-                  src={preview}
-                  alt={`Preview ${index}`}
-                  boxSize="100px"
-                  objectFit="cover"
-                  mr={2}
-                />
+            <HStack spacing={4} mt={2}>
+              {previewImages.map((imgSrc, index) => (
+                <Box key={index} position="relative">
+                  <Image
+                    src={imgSrc}
+                    alt={`Product Image ${index + 1}`}
+                    boxSize="100px"
+                    objectFit="cover"
+                  />
+                  <Button
+                    size="xs"
+                    colorScheme="red"
+                    position="absolute"
+                    top="0"
+                    right="0"
+                    onClick={() => removeImage(index)}
+                  >
+                    X
+                  </Button>
+                </Box>
               ))}
-            </Box>
+            </HStack>
           </FormControl>
+
           <Button type="submit" colorScheme="blue">
-            Thêm sản phẩm
+            {product ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
           </Button>
         </VStack>
       )}

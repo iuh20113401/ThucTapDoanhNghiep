@@ -146,37 +146,51 @@ export const updateProduct = asyncHandler(async (req, res) => {
     colors,
     slug,
   } = req.body;
+
   const coverImage = req.files?.coverImage?.[0];
   const imageFiles = req.files?.images || [];
-  const product = await Product.findById(id);
-  if (product) {
-    product.brand = brand;
-    product.name = name;
-    product.category = category;
-    product.stock = stock;
-    product.salePrice = salePrice;
-    product.price = price;
-    product.productIsNew = productIsNew;
-    product.productIsSaleOff = productIsSale;
-    product.description = description;
-    product.sizes = sizes;
-    product.colors = colors;
-    product.slug = slug;
-    if (coverImage) {
-      product.coverImage = coverImage
-        ? `/images/${coverImage.filename}`
-        : product.coverImage;
-    }
 
-    if (imageFiles) {
-      product.images = imageFiles.map((file) => `/images/${file.filename}`);
-    }
-    await product.save();
-    res.json(product);
-  } else {
+  // Build the update object dynamically
+  const updateFields = {};
+
+  if (brand) updateFields.brand = brand;
+  if (name) updateFields.name = name;
+  if (category) updateFields.category = category;
+  if (stock) updateFields.stock = stock;
+  if (price) updateFields.price = price;
+  if (salePrice) updateFields.salePrice = salePrice;
+  if (typeof productIsSale !== "undefined")
+    updateFields.productIsSaleOff = productIsSale;
+  if (typeof productIsNew !== "undefined")
+    updateFields.productIsNew = productIsNew;
+  if (description) updateFields.description = description;
+  if (sizes) updateFields.sizes = sizes;
+  if (colors) updateFields.colors = colors;
+  if (slug) updateFields.slug = slug;
+
+  // If coverImage is uploaded, update the cover image
+  if (coverImage) {
+    updateFields.coverImage = `/images/${coverImage.filename}`;
+  }
+
+  // If images are uploaded, map the filenames to paths
+  if (imageFiles.length > 0) {
+    updateFields.images = imageFiles.map((file) => `/images/${file.filename}`);
+  }
+
+  // Find and update the product in a single query
+  const updatedProduct = await Product.findByIdAndUpdate(
+    id,
+    { $set: updateFields },
+    { new: true, runValidators: true }
+  );
+
+  if (!updatedProduct) {
     res.status(404).send("Product not found.");
     throw new Error("Product not found.");
   }
+
+  res.json(updatedProduct);
 });
 
 export const removeProductReview = asyncHandler(async (req, res) => {

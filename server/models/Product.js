@@ -34,7 +34,7 @@ const productSchema = new mongoose.Schema(
     productIsNew: { type: Boolean, required: true, default: false },
     productIsSaleOff: { type: Boolean, required: true, default: false },
     colors: [{ ten: String, color: String }],
-    sizes: { type: Array, required: true, default: [] },
+    sizes: { type: Array, default: [] },
   },
   { timestamps: true }
 );
