@@ -146,10 +146,11 @@ export const updateProduct = asyncHandler(async (req, res) => {
     colors,
     slug,
   } = req.body;
+  console.log(req.files);
 
   const coverImage = req.files?.coverImage?.[0];
   const imageFiles = req.files?.images || [];
-
+  console.log(coverImage, imageFiles);
   // Build the update object dynamically
   const updateFields = {};
 
