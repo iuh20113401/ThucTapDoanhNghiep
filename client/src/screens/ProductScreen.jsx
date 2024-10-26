@@ -44,12 +44,12 @@ const ProductScreen = () => {
   const { loading, error, product, reviewed } = useSelector(
     (state) => state.product
   );
-  const [color, setColor] = useState(product?.colors[0].ten);
-  const [size, setSize] = useState(product?.sizes[0]);
+  const [color, setColor] = useState(null);
+  const [size, setSize] = useState(null);
   useEffect(() => {
     if (product) {
-      setColor(product?.colors[0].ten);
-      setSize(product?.sizes[0]);
+      setColor(product?.colors?.[0]?.ten);
+      setSize(product?.sizes?.[0]);
     }
   }, [product]);
   const { cartItems } = useSelector((state) => state.cart);
@@ -115,7 +115,6 @@ const ProductScreen = () => {
       createProductReview(product._id, userInfo._id, comment, rating, title)
     );
   };
-
   return (
     <Wrap spacing="30px" justify="center" minHeight="100vh">
       {loading ? (
@@ -223,28 +222,36 @@ const ProductScreen = () => {
                   </Box>
                   <Text>{product.subtitle}</Text>
                   <Text>{product.description}</Text>
-                  <Text fontWeight="bold">Size</Text>{" "}
-                  <Flex w="auto" p="5px" gap={"1rem"} alignItems="center">
-                    {product.sizes.map((s) => (
-                      <Button
-                        border={`${s === size ? "1" : "0"}px`}
-                        onClick={() => setSize(s)}
-                      >
-                        {s}
-                      </Button>
-                    ))}
-                  </Flex>
-                  <Text fontWeight="bold">Màu sắc</Text>
-                  <Flex w="auto" p="5px" gap={"1rem"} alignItems="center">
-                    {product.colors.map((cl) => (
-                      <Button
-                        border={`${cl.ten === color ? "1" : "0"}px`}
-                        onClick={() => setColor(cl.ten)}
-                      >
-                        {cl.ten}
-                      </Button>
-                    ))}
-                  </Flex>
+                  {product.sizes.length && (
+                    <>
+                      <Text fontWeight="bold">Size</Text>{" "}
+                      <Flex w="auto" p="5px" gap={"1rem"} alignItems="center">
+                        {product.sizes.map((s) => (
+                          <Button
+                            border={`${s === size ? "1" : "0"}px`}
+                            onClick={() => setSize(s)}
+                          >
+                            {s}
+                          </Button>
+                        ))}
+                      </Flex>
+                    </>
+                  )}
+                  {product.colors.length && (
+                    <>
+                      <Text fontWeight="bold">Màu sắc</Text>
+                      <Flex w="auto" p="5px" gap={"1rem"} alignItems="center">
+                        {product.colors.map((cl) => (
+                          <Button
+                            border={`${cl.ten === color ? "1" : "0"}px`}
+                            onClick={() => setColor(cl.ten)}
+                          >
+                            {cl.ten}
+                          </Button>
+                        ))}
+                      </Flex>
+                    </>
+                  )}
                   <Text fontWeight="bold">Số lượng</Text>
                   <Flex
                     w="170px"
