@@ -4,7 +4,11 @@ import connectToDatabase from "./db.js";
 import express from "express";
 import cors from "cors";
 import path from "path";
-
+import productRoutes from "./routes/productRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import shippingRoutes from "./routes/shippingRoutes.js";
+import stripeRoute from "./routes/stripeRoute.js";
 // Load environment variables
 dotenv.config();
 
